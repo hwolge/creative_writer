@@ -1,0 +1,114 @@
+{
+  "project_slug": "my-novel",
+
+  "story_bible": {
+    "title": "The Forged Map",
+    "genre": "historical thriller",
+    "setting": "Oslo harbor district, 1923. Fog, gas lamps, dockside warehouses.",
+    "themes": ["betrayal", "the weight of secrets", "redemption"],
+    "world_rules": [
+      "No omniscient narration — close third-person only.",
+      "Violence is consequence, never spectacle.",
+      "Each chapter must advance at least one plot thread to a new state."
+    ],
+    "taboo_items": [
+      "No anachronistic technology.",
+      "No deus ex machina resolutions."
+    ],
+    "timeline_anchor": "Chapter 1 begins on 3 November 1923, a Tuesday."
+  },
+
+  "characters": [
+    {
+      "name": "Elin Voss",
+      "facts": {
+        "age": 34,
+        "appearance": "Tall, auburn hair worn pinned up. A scar runs along her left jaw from a childhood accident.",
+        "role": "protagonist — harbor inspector with a past in naval intelligence",
+        "motivation": "Find out who killed her former partner Knut before the investigation is buried.",
+        "secrets": ["She forged the inspection report that cleared the Halversen cargo six months ago."],
+        "relationships": {
+          "Jonas Lund": "uneasy alliance — she trusts him less than she lets on",
+          "Director Marte Brekke": "nominal superior; Elin suspects she is complicit"
+        },
+        "physical_state": "tired but functional",
+        "knows_secret": []
+      },
+      "voice_samples": [
+        "She didn't answer right away. Let the silence do the work.",
+        "Elin had learned long ago that the truth doesn't arrive — you have to go in after it."
+      ]
+    },
+    {
+      "name": "Jonas Lund",
+      "facts": {
+        "age": 41,
+        "appearance": "Heavy-set, sandy hair going grey at the temples. Always wears the same brown overcoat.",
+        "role": "secondary — smuggler turned reluctant informant",
+        "motivation": "Stay alive and keep his daughter out of the mess he's made.",
+        "secrets": ["He knows the map is forged. He commissioned it."],
+        "relationships": {
+          "Elin Voss": "nervous respect — she is the only person who might actually stop Brekke",
+          "Director Marte Brekke": "fear; she owns him"
+        },
+        "physical_state": "exhausted, bruised left hand from a recent altercation",
+        "knows_secret": ["the map is forged"]
+      },
+      "voice_samples": [
+        "Jonas spread his hands on the table as if surrendering to gravity.",
+        "'There are things you don't come back from,' he said. 'This is one of them.'"
+      ]
+    }
+  ],
+
+  "plot_threads": [
+    {
+      "thread_id": "forged-map",
+      "title": "The Forged Harbor Map",
+      "status": "open",
+      "summary": "A navigational chart used to smuggle contraband past customs has been forged. Elin has the original; someone knows she has it."
+    },
+    {
+      "thread_id": "knut-death",
+      "title": "Knut's Death",
+      "status": "open",
+      "summary": "Elin's former partner Knut was found in the harbor two weeks ago. Official ruling: accident. Elin doesn't believe it."
+    },
+    {
+      "thread_id": "brekke-complicity",
+      "title": "Director Brekke's Role",
+      "status": "dormant",
+      "summary": "Elin suspects her superior is involved but has no evidence yet."
+    }
+  ],
+
+  "style_guide": [
+    {
+      "category": "voice",
+      "content": "Spare, precise prose. Short sentences in tense moments. Longer, observational sentences during quieter scenes. No adverb clusters."
+    },
+    {
+      "category": "rule",
+      "content": "Show interiority through action and observation, not internal monologue dumps."
+    },
+    {
+      "category": "motif",
+      "content": "Water and fog are recurring. The harbor is never just backdrop — it mirrors the characters' states."
+    },
+    {
+      "category": "sample",
+      "content": "The warehouse smelled of salt and old rope. Elin kept her hand near her coat pocket and didn't touch anything."
+    }
+  ],
+
+  "arc_goals": [
+    {
+      "chapter": 1,
+      "goal": "Establish Elin's world and the inciting problem: the forged map surfaces, and she realizes Knut knew about it before he died."
+    },
+    {
+      "chapter": 2,
+      "goal": "Elin finds Jonas, who is her only lead. Their first meeting establishes mutual distrust but shared necessity."
+    }
+  ]
+}
