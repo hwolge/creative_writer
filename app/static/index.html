@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novel Writer</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <span class="brand">Novel Writer</span>
+    <nav>
+      <button class="active" data-tab="plan">Plan</button>
+      <button data-tab="write">Write</button>
+      <button data-tab="state">State</button>
+      <button data-tab="archive">Archive</button>
+    </nav>
+  </header>
+
+  <div id="status-bar">
+    <span class="stat"><span class="stat-label">Project</span><span class="stat-value" id="sb-project">—</span></span>
+    <span class="stat"><span class="stat-label">Chapter</span><span class="stat-value" id="sb-chapter">—</span></span>
+    <span class="stat"><span class="stat-label">Scene</span><span class="stat-value" id="sb-scene">—</span></span>
+    <span class="stat"><span class="stat-label">Open threads</span><span class="stat-value" id="sb-threads">—</span></span>
+    <span class="stat" id="sb-issues-wrap" style="display:none">
+      <span class="stat-label">Issues</span><span class="stat-value badge-warn" id="sb-issues">—</span>
+    </span>
+  </div>
+
+  <main>
+
+    <!-- ── PLAN ──────────────────────────────────────────────────────── -->
+    <section id="tab-plan" class="tab-panel active">
+      <h2 class="section-heading">Plan Next Chapter</h2>
+
+      <div class="card" id="plan-form-card">
+        <div class="card-title">Arc Goal</div>
+        <div class="form-row">
+          <label for="arc-goal-input">What must this chapter accomplish?</label>
+          <textarea id="arc-goal-input" rows="3" placeholder="e.g. Elin confronts Jonas and learns he commissioned the forged map — their uneasy alliance deepens."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-propose">Propose 3 Options</button>
+        </div>
+      </div>
+
+      <div id="plan-options-section" style="display:none">
+        <div class="card-title" style="margin-bottom:12px">Choose a Chapter Plan</div>
+        <div class="option-grid" id="options-grid"></div>
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn btn-primary" id="btn-confirm-plan" disabled>Confirm Selected Option</button>
+          <button class="btn btn-secondary" id="btn-replan">Re-propose</button>
+        </div>
+        <div id="plan-result" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- ── WRITE ─────────────────────────────────────────────────────── -->
+    <section id="tab-write" class="tab-panel">
+      <h2 class="section-heading">Write Scene</h2>
+
+      <div id="write-no-scene" class="empty-state" style="display:none">
+        No pending scene. Go to <strong>Plan</strong> to plan the next chapter.
+      </div>
+
+      <div id="write-scene-area">
+        <div id="write-brief" class="brief-box">
+          <strong>Scene Brief</strong>
+          <span id="write-brief-text">Loading...</span>
+        </div>
+        <div id="write-chapter-context" class="brief-box" style="margin-bottom:16px; display:none">
+          <strong>Chapter</strong>
+          <span id="write-chapter-text"></span>
+        </div>
+
+        <!-- Write controls -->
+        <div id="write-controls" class="card">
+          <div class="card-title">Generate</div>
+          <div class="form-row" id="author-note-row">
+            <label for="author-note">Author note (optional — guides this attempt)</label>
+            <input type="text" id="author-note" placeholder="e.g. Emphasise the harbour fog; keep the dialogue terse">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-write">Write Scene</button>
+          </div>
+        </div>
+
+        <!-- Draft area — shown after generation -->
+        <div id="draft-area" style="display:none">
+          <div class="card-title" style="margin-bottom:8px">Draft</div>
+          <textarea class="prose-area" id="prose-editor" rows="22" spellcheck="true"></textarea>
+
+          <div id="delta-flags" style="display:none" class="alert alert-warn" style="margin-top:12px">
+            <strong>Writer flagged continuity items:</strong>
+            <ul class="flags-list" id="delta-flags-list"></ul>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-success" id="btn-approve">Approve &amp; Save</button>
+            <button class="btn btn-danger" id="btn-reject">Reject / Regenerate</button>
+          </div>
+        </div>
+
+        <!-- Post-approval result -->
+        <div id="approval-result" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- ── STATE ─────────────────────────────────────────────────────── -->
+    <section id="tab-state" class="tab-panel">
+      <h2 class="section-heading">Story State</h2>
+
+      <!-- Characters -->
+      <div class="card">
+        <div class="card-title">Characters</div>
+        <div class="char-grid" id="chars-grid">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Plot Threads -->
+      <div class="card">
+        <div class="card-title">Plot Threads</div>
+        <table class="data-table" id="threads-table">
+          <thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Summary</th></tr></thead>
+          <tbody id="threads-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Continuity Issues -->
+      <div class="card" id="issues-card">
+        <div class="card-title">Continuity Issues</div>
+        <table class="data-table" id="issues-table">
+          <thead><tr><th>ID</th><th>Severity</th><th>Description</th><th></th></tr></thead>
+          <tbody id="issues-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <div class="card-title">Timeline</div>
+        <table class="data-table" id="timeline-table">
+          <thead><tr><th>Day</th><th>Event</th></tr></thead>
+          <tbody id="timeline-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── ARCHIVE ────────────────────────────────────────────────────── -->
+    <section id="tab-archive" class="tab-panel">
+      <h2 class="section-heading">Archive</h2>
+
+      <div class="search-row">
+        <input type="text" id="search-input" placeholder="Search scenes…">
+        <button class="btn btn-secondary" id="btn-search">Search</button>
+      </div>
+      <div id="search-results"></div>
+
+      <div class="card">
+        <div class="card-title">Chapters</div>
+        <table class="data-table" id="chapters-table">
+          <thead><tr><th>#</th><th>Title</th><th>Arc Goal</th><th>Status</th></tr></thead>
+          <tbody id="chapters-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="scenes-section" style="display:none">
+        <div class="card-title" style="margin-bottom:10px" id="scenes-heading">Scenes</div>
+        <table class="data-table" id="scenes-table">
+          <thead><tr><th>ID</th><th>Seq</th><th>Brief</th><th>Status</th></tr></thead>
+          <tbody id="scenes-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="scene-viewer" style="display:none">
+        <div class="card-title" id="scene-viewer-title">Scene</div>
+        <div class="prose-viewer" id="scene-viewer-text"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="btn-close-viewer">Close</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div id="loading-msg">Working…</div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
