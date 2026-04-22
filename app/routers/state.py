@@ -13,6 +13,23 @@ class CharacterPatch(BaseModel):
     changes: dict[str, Any]
 
 
+@router.get("/bible")
+async def get_bible(conn=Depends(get_db)) -> dict[str, Any]:
+    try:
+        return db.get_story_bible(conn)
+    finally:
+        conn.close()
+
+
+@router.patch("/bible")
+async def patch_bible(updates: dict[str, Any], conn=Depends(get_db)) -> dict[str, Any]:
+    try:
+        db.update_story_bible(conn, updates)
+        return db.get_story_bible(conn)
+    finally:
+        conn.close()
+
+
 class ThreadPatch(BaseModel):
     status: str | None = None
     summary: str | None = None

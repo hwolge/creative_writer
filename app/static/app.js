@@ -506,9 +506,37 @@ async function doSearch() {
   } catch (e) { results.innerHTML = `<div class="alert alert-error">${esc(e.message)}</div>`; }
 }
 
+// ── Language selector ─────────────────────────────────────────────────────────
+
+async function loadLanguage() {
+  try {
+    const bible = await api('GET', '/state/bible');
+    const lang = bible.output_language || 'English';
+    const sel = document.getElementById('language-select');
+    // Select matching option, or add a custom one if not in the list
+    const match = [...sel.options].find(o => o.value.toLowerCase() === lang.toLowerCase());
+    if (match) {
+      sel.value = match.value;
+    } else {
+      const opt = new Option(lang, lang, true, true);
+      sel.appendChild(opt);
+    }
+  } catch (e) { /* no project loaded yet — ignore */ }
+}
+
+document.getElementById('language-select').addEventListener('change', async (e) => {
+  const lang = e.target.value;
+  try {
+    await api('PATCH', '/state/bible', { output_language: lang });
+  } catch (err) {
+    console.warn('Failed to save language:', err.message);
+  }
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
 (async () => {
   await refreshStatus();
   await loadCurrentScene();
+  await loadLanguage();
 })();

@@ -59,7 +59,25 @@
 
     <!-- ── WRITE ─────────────────────────────────────────────────────── -->
     <section id="tab-write" class="tab-panel">
-      <h2 class="section-heading">Write Scene</h2>
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px">
+        <h2 class="section-heading" style="margin-bottom:0">Write Scene</h2>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <label for="language-select" style="font-size:13px;color:var(--text-muted);margin:0">Output language</label>
+          <select id="language-select" style="font-size:13px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer">
+            <option value="English">English</option>
+            <option value="Swedish">Swedish</option>
+            <option value="Norwegian">Norwegian</option>
+            <option value="Danish">Danish</option>
+            <option value="German">German</option>
+            <option value="French">French</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Italian">Italian</option>
+            <option value="Dutch">Dutch</option>
+            <option value="Finnish">Finnish</option>
+            <option value="Polish">Polish</option>
+          </select>
+        </div>
+      </div>
 
       <div id="write-no-scene" class="empty-state" style="display:none">
         No pending scene. Go to <strong>Plan</strong> to plan the next chapter.

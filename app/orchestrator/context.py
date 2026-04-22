@@ -136,10 +136,9 @@ def build_writer_messages(
     pov_character: str | None = None,
     chapter_context: str = "",
 ) -> list[dict[str, Any]]:
-    bible = _trim(
-        _format_story_bible(db.get_story_bible(conn)),
-        settings.budget_story_bible,
-    )
+    bible_data = db.get_story_bible(conn)
+    output_language = str(bible_data.get("output_language", "English")).strip()
+    bible = _trim(_format_story_bible(bible_data), settings.budget_story_bible)
     style = _trim(
         _format_style_guide(db.get_style_guide(conn)),
         settings.budget_style_guide,
@@ -170,10 +169,17 @@ def build_writer_messages(
     context_parts = [p for p in [bible, style, pov_block, open_threads, recent_text] if p]
     context_block = "\n\n".join(context_parts)
 
+    lang_instruction = (
+        f"Write ALL prose in {output_language}. "
+        "The facts_delta JSON block must remain in English regardless of output language.\n\n"
+        if output_language.lower() != "english" else ""
+    )
+
     system = (
         "You are a skilled novelist writing compelling literary fiction. "
         "Write fully realized prose for the scene described — not a summary, not an outline. "
         "Stay in close third-person POV unless the scene brief specifies otherwise.\n\n"
+        f"{lang_instruction}"
         "You have tools to query story state. Use them proactively to ensure continuity "
         "(character facts, voice samples, past scene excerpts, timeline).\n\n"
         "After your prose, output a facts_delta block enclosed in ```json ... ``` fences "

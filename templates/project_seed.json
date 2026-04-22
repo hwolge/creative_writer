@@ -2,6 +2,7 @@
   "project_slug": "my-novel",
 
   "story_bible": {
+    "output_language": "English",
     "title": "The Forged Map",
     "genre": "historical thriller",
     "setting": "Oslo harbor district, 1923. Fog, gas lamps, dockside warehouses.",

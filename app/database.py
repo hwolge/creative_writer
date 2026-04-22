@@ -12,7 +12,7 @@ def _now() -> str:
 
 
 def get_conn(db_path: Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
@@ -93,6 +93,15 @@ def init_schema(conn: sqlite3.Connection) -> None:
             content   TEXT NOT NULL
         );
     """)
+    conn.commit()
+
+
+def update_story_bible(conn: sqlite3.Connection, updates: dict[str, Any]) -> None:
+    for key, value in updates.items():
+        conn.execute(
+            "INSERT OR REPLACE INTO story_bible (key, value) VALUES (?, ?)",
+            (key, value if isinstance(value, str) else json.dumps(value)),
+        )
     conn.commit()
 
 
