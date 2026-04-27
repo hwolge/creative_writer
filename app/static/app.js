@@ -552,9 +552,9 @@ async function doSearch() {
 // ── PROJECTS tab ─────────────────────────────────────────────────────────────
 
 async function loadProjects() {
+  const tbody = document.getElementById('projects-tbody');
   try {
     const data = await api('GET', '/project/list');
-    const tbody = document.getElementById('projects-tbody');
     if (!data.projects.length) {
       tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No projects found.</td></tr>';
       return;
@@ -570,7 +570,9 @@ async function loadProjects() {
               onclick="deleteProject('${esc(p.slug)}', this)">Delete</button>` : ''}
         </td>
       </tr>`).join('');
-  } catch (e) { console.warn(e); }
+  } catch (e) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="3" class="alert alert-error">${esc(e.message)}</td></tr>`;
+  }
 }
 
 window.switchProject = async (slug, btn) => {
@@ -676,4 +678,5 @@ document.getElementById('language-select').addEventListener('change', async (e) 
   await refreshStatus();
   await loadCurrentScene();
   await loadLanguage();
+  await loadProjects();   // pre-load so the Projects tab is ready instantly
 })();
