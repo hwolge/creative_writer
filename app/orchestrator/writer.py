@@ -30,7 +30,7 @@ def write_scene(
     Returns (prose_text, facts_delta_dict).
     """
     messages = build_writer_messages(conn, scene_brief, pov_character, chapter_context)
-    content, _ = run_tool_loop(client, settings.primary_model, messages, conn)
+    content, _ = run_tool_loop(client, settings.primary_model, messages, conn, label="writer")
     return _parse_response(content)
 
 

@@ -3,6 +3,7 @@ import sqlite3
 from typing import Any
 
 from app import database as db
+from app.orchestrator.llm_log import timed_completion
 
 # ── Tool definitions (sent to OpenAI) ─────────────────────────────────────────
 
@@ -176,11 +177,17 @@ def run_tool_loop(
     messages: list[dict[str, Any]],
     conn: sqlite3.Connection,
     max_rounds: int = 6,
+    label: str = "tool_loop",
 ) -> tuple[str, list[dict[str, Any]]]:
     """Drive the tool-calling loop until the model produces a final text response.
     Returns (final_content, updated_messages)."""
+    round_num = 0
     for _ in range(max_rounds):
-        response = client.chat.completions.create(
+        round_num += 1
+        round_label = f"{label}:round{round_num}"
+        response = timed_completion(
+            client,
+            label=round_label,
             model=model,
             messages=messages,
             tools=TOOL_DEFINITIONS,
@@ -204,6 +211,10 @@ def run_tool_loop(
         if not msg.tool_calls:
             return msg.content or "", messages
 
+        # Log which tools were dispatched this round
+        tool_names = [tc.function.name for tc in msg.tool_calls]
+        print(f"         tools → {', '.join(tool_names)}", flush=True)
+
         # Execute tool calls
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
@@ -216,7 +227,12 @@ def run_tool_loop(
 
     # Exceeded max rounds — ask for a plain response
     messages.append({"role": "user", "content": "Please produce your final response now."})
-    response = client.chat.completions.create(model=model, messages=messages)
+    response = timed_completion(
+        client,
+        label=f"{label}:forced",
+        model=model,
+        messages=messages,
+    )
     content = response.choices[0].message.content or ""
     messages.append({"role": "assistant", "content": content})
     return content, messages

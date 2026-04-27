@@ -11,6 +11,7 @@ from app.orchestrator.context import (
     build_chapter_summarizer_messages,
     build_reconciler_messages,
 )
+from app.orchestrator.llm_log import timed_completion
 
 
 def reconcile_scene(
@@ -22,7 +23,9 @@ def reconcile_scene(
     """Validate facts_delta and generate scene summary using the fast model."""
     messages = build_reconciler_messages(conn, scene_text, proposed_delta)
 
-    response = client.chat.completions.create(
+    response = timed_completion(
+        client,
+        label="reconciler/validate",
         model=settings.fast_model,
         messages=messages,
         response_format={"type": "json_object"},
@@ -80,7 +83,9 @@ def auto_resolve_issue(
         issue["description"], scene_text, state_block, output_language
     )
 
-    response = client.chat.completions.create(
+    response = timed_completion(
+        client,
+        label="reconciler/auto-resolve",
         model=settings.fast_model,
         messages=messages,
         response_format={"type": "json_object"},
@@ -120,7 +125,9 @@ def summarize_chapter(
     messages = build_chapter_summarizer_messages(
         scene_summaries, chapter_title, arc_goal, output_language
     )
-    response = client.chat.completions.create(
+    response = timed_completion(
+        client,
+        label="reconciler/summarize",
         model=settings.fast_model,
         messages=messages,
     )

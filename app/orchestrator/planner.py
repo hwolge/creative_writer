@@ -16,7 +16,7 @@ def propose_chapter_options(
 ) -> list[ChapterOption]:
     """Call the planner model and return 3 chapter options for the author to choose from."""
     messages = build_planner_messages(conn, arc_goal)
-    content, _ = run_tool_loop(client, settings.primary_model, messages, conn)
+    content, _ = run_tool_loop(client, settings.primary_model, messages, conn, label="planner")
     return _parse_options(content)
 
 
