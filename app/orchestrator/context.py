@@ -263,6 +263,42 @@ def build_reconciler_messages(
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+# ── Auto-resolver context ─────────────────────────────────────────────────────
+
+def build_auto_resolver_messages(
+    issue_description: str,
+    scene_text: str,
+    current_state_block: str,
+    output_language: str = "English",
+) -> list[dict[str, Any]]:
+    """Messages for the fast model to resolve a single low-confidence continuity issue."""
+    lang_note = (
+        f"Write the 'resolution' explanation in {output_language}. "
+        "All JSON field names and values (character_updates, plot_updates, etc.) stay in English.\n\n"
+        if output_language.lower() != "english" else ""
+    )
+    system = (
+        "You are a continuity editor resolving an uncertain item flagged during scene approval.\n\n"
+        f"{lang_note}"
+        "Your tasks:\n"
+        "1. Read the flagged issue, the scene text, and the current story state.\n"
+        "2. Determine the single most consistent answer — what the canon value should be.\n"
+        "3. Output a JSON object (no markdown fences):\n"
+        '{"resolution": "Brief explanation of what you decided and why.", '
+        '"character_updates": [{"name": "...", "changes": {"field": "new_value"}}], '
+        '"plot_updates": [{"thread_id": "...", "status": "...", "summary_update": "..."}]}\n\n'
+        "Only include updates that are directly supported by the scene text. "
+        "Empty arrays are fine if no updates are needed — the issue may just need dismissal."
+    )
+    user = (
+        f"FLAGGED ISSUE:\n{issue_description}\n\n"
+        f"CURRENT STORY STATE:\n{current_state_block}\n\n"
+        f"SCENE TEXT:\n{scene_text}\n\n"
+        "Resolve this issue now."
+    )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+
 # ── Chapter summarizer context ────────────────────────────────────────────────
 
 def build_chapter_summarizer_messages(

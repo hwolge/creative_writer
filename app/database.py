@@ -491,8 +491,51 @@ def save_chapter_summary(conn: sqlite3.Connection, chapter_id: int, summary: str
     conn.commit()
 
 
+def get_continuity_issue(conn: sqlite3.Connection, issue_id: int) -> dict[str, Any] | None:
+    row = conn.execute(
+        "SELECT * FROM continuity_issues WHERE issue_id=?", (issue_id,)
+    ).fetchone()
+    return dict(row) if row else None
+
+
 def resolve_continuity_issue(conn: sqlite3.Connection, issue_id: int) -> None:
     conn.execute(
         "UPDATE continuity_issues SET resolved=1 WHERE issue_id=?", (issue_id,)
     )
+    conn.commit()
+
+
+def apply_resolution_delta(
+    conn: sqlite3.Connection,
+    character_updates: list[dict[str, Any]],
+    plot_updates: list[dict[str, Any]],
+) -> None:
+    """Apply character/plot updates produced by the auto-resolver."""
+    for cu in character_updates:
+        row = conn.execute("SELECT facts FROM characters WHERE name=?", (cu["name"],)).fetchone()
+        if row:
+            facts = json.loads(row["facts"])
+            for k, v in cu.get("changes", {}).items():
+                facts[k] = v
+            conn.execute(
+                "UPDATE characters SET facts=?, updated_at=? WHERE name=?",
+                (json.dumps(facts), _now(), cu["name"]),
+            )
+
+    for pu in plot_updates:
+        if not pu.get("thread_id"):
+            continue
+        parts: list[str] = ["updated_at=?"]
+        params: list[Any] = [_now()]
+        if pu.get("status"):
+            parts.append("status=?")
+            params.append(pu["status"])
+        if pu.get("summary_update"):
+            parts.append("summary=?")
+            params.append(pu["summary_update"])
+        params.append(pu["thread_id"])
+        conn.execute(
+            f"UPDATE plot_threads SET {', '.join(parts)} WHERE thread_id=?", params
+        )
+
     conn.commit()

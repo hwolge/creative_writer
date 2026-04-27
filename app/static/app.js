@@ -59,6 +59,7 @@ document.querySelectorAll('nav button').forEach(btn => {
     if (btn.dataset.tab === 'state') loadState();
     if (btn.dataset.tab === 'archive') loadArchive();
     if (btn.dataset.tab === 'write') loadCurrentScene();
+    if (btn.dataset.tab === 'projects') loadProjects();
   });
 });
 
@@ -274,9 +275,13 @@ document.getElementById('btn-approve').addEventListener('click', async () => {
     </div>`;
 
     if (data.low_confidence_items?.length) {
-      html += `<div class="alert alert-warn"><strong>Low-confidence items flagged:</strong><ul class="flags-list">
-        ${data.low_confidence_items.map(i => `<li>${esc(i)}</li>`).join('')}
-      </ul></div>`;
+      html += `<div class="alert alert-warn">
+        <strong>${data.low_confidence_items.length} low-confidence item${data.low_confidence_items.length > 1 ? 's' : ''} flagged</strong>
+        — saved to <strong>State → Continuity Issues</strong> where you can auto-resolve or dismiss each one.
+        <ul class="flags-list" style="margin-top:6px">
+          ${data.low_confidence_items.map(i => `<li>${esc(i)}</li>`).join('')}
+        </ul>
+      </div>`;
     }
 
     if (data.chapter_complete) {
@@ -382,12 +387,16 @@ async function loadIssues() {
     }
     card.style.display = '';
     tbody.innerHTML = issues.map(i => `
-      <tr>
+      <tr id="issue-row-${i.issue_id}">
         <td>${i.issue_id}</td>
         <td>${badge(i.severity)}</td>
         <td>${esc(i.description)}</td>
-        <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px"
-            onclick="resolveIssue(${i.issue_id}, this)">Resolve</button></td>
+        <td style="white-space:nowrap;display:flex;gap:6px">
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px"
+              onclick="resolveIssue(${i.issue_id}, this)">Dismiss</button>
+          <button class="btn btn-primary" style="padding:4px 10px;font-size:12px"
+              onclick="autoResolveIssue(${i.issue_id}, this)">Auto-resolve ✦</button>
+        </td>
       </tr>`).join('');
   } catch (e) { console.warn(e); }
 }
@@ -396,9 +405,43 @@ window.resolveIssue = async (id, btn) => {
   btn.disabled = true;
   try {
     await api('POST', `/state/issues/${id}/resolve`);
-    btn.closest('tr').remove();
+    document.getElementById(`issue-row-${id}`)?.remove();
+    const tbody = document.getElementById('issues-tbody');
+    if (!tbody.querySelector('tr')) {
+      document.getElementById('issues-card').style.display = 'none';
+    }
     await refreshStatus();
   } catch (e) { btn.disabled = false; alert(e.message); }
+};
+
+window.autoResolveIssue = async (id, btn) => {
+  const row = document.getElementById(`issue-row-${id}`);
+  const descCell = row?.cells[2];
+  btn.disabled = true;
+  btn.textContent = 'Resolving…';
+  try {
+    const data = await api('POST', `/state/issues/${id}/auto-resolve`);
+    // Replace the row with a success summary, then fade it out
+    if (row) {
+      row.innerHTML = `
+        <td colspan="4" class="alert alert-success" style="padding:8px 12px">
+          <strong>✦ Auto-resolved:</strong> ${esc(data.resolution)}
+          ${data.character_updates?.length ? `<br><small>Updated: ${data.character_updates.map(u => u.name).join(', ')}</small>` : ''}
+        </td>`;
+      setTimeout(() => {
+        row.remove();
+        const tbody = document.getElementById('issues-tbody');
+        if (tbody && !tbody.querySelector('tr')) {
+          document.getElementById('issues-card').style.display = 'none';
+        }
+      }, 4000);
+    }
+    await refreshStatus();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Auto-resolve ✦';
+    alert('Auto-resolve failed: ' + e.message);
+  }
 };
 
 async function loadTimeline() {
@@ -505,6 +548,100 @@ async function doSearch() {
     });
   } catch (e) { results.innerHTML = `<div class="alert alert-error">${esc(e.message)}</div>`; }
 }
+
+// ── PROJECTS tab ─────────────────────────────────────────────────────────────
+
+async function loadProjects() {
+  try {
+    const data = await api('GET', '/project/list');
+    const tbody = document.getElementById('projects-tbody');
+    if (!data.projects.length) {
+      tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No projects found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.projects.map(p => `
+      <tr id="proj-row-${esc(p.slug)}">
+        <td><code>${esc(p.slug)}</code></td>
+        <td>${p.active ? '<span class="badge badge-open">active</span>' : ''}</td>
+        <td style="display:flex;gap:6px">
+          ${!p.active ? `<button class="btn btn-primary" style="padding:4px 10px;font-size:12px"
+              onclick="switchProject('${esc(p.slug)}', this)">Switch</button>` : ''}
+          ${!p.active ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:12px"
+              onclick="deleteProject('${esc(p.slug)}', this)">Delete</button>` : ''}
+        </td>
+      </tr>`).join('');
+  } catch (e) { console.warn(e); }
+}
+
+window.switchProject = async (slug, btn) => {
+  btn.disabled = true;
+  btn.textContent = 'Switching…';
+  try {
+    await api('POST', `/project/switch/${encodeURIComponent(slug)}`);
+    await refreshStatus();
+    await loadLanguage();
+    await loadProjects();   // re-render active badge
+    // Reload Write tab state for the new project
+    await loadCurrentScene();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Switch';
+    alert('Switch failed: ' + e.message);
+  }
+};
+
+window.deleteProject = async (slug, btn) => {
+  if (!confirm(`Permanently delete project "${slug}"? This cannot be undone.`)) return;
+  btn.disabled = true;
+  try {
+    await api('DELETE', `/project/${encodeURIComponent(slug)}`);
+    document.getElementById(`proj-row-${slug}`)?.remove();
+  } catch (e) {
+    btn.disabled = false;
+    alert('Delete failed: ' + e.message);
+  }
+};
+
+document.getElementById('btn-load-template').addEventListener('click', async () => {
+  try {
+    const tmpl = await api('GET', '/project/seed-template');
+    document.getElementById('new-project-seed').value = JSON.stringify(tmpl, null, 2);
+    // Pre-fill slug from template if slug field is empty
+    const slugInput = document.getElementById('new-project-slug');
+    if (!slugInput.value && tmpl.project_slug) slugInput.value = tmpl.project_slug;
+  } catch (e) { alert('Could not load template: ' + e.message); }
+});
+
+document.getElementById('btn-create-project').addEventListener('click', async () => {
+  const slug = document.getElementById('new-project-slug').value.trim();
+  const seedRaw = document.getElementById('new-project-seed').value.trim();
+  const resultEl = document.getElementById('create-project-result');
+
+  if (!slug) { alert('Enter a project slug.'); return; }
+  if (!seedRaw) { alert('Paste a seed JSON or load the template first.'); return; }
+
+  let seed;
+  try { seed = JSON.parse(seedRaw); }
+  catch (e) { alert('Invalid JSON: ' + e.message); return; }
+
+  loading('Creating project…');
+  try {
+    const data = await api('POST', '/project/create', { slug, seed });
+    resultEl.innerHTML = `<div class="alert alert-success">
+      <strong>Project "${esc(data.created)}" created.</strong>
+      ${data.characters} characters · ${data.plot_threads} threads · ${data.arc_goals} arc goals.<br>
+      <button class="btn btn-primary" style="margin-top:8px"
+        onclick="switchProject('${esc(data.created)}', this)">Switch to this project →</button>
+    </div>`;
+    document.getElementById('new-project-slug').value = '';
+    document.getElementById('new-project-seed').value = '';
+    await loadProjects();
+  } catch (e) {
+    resultEl.innerHTML = `<div class="alert alert-error">${esc(e.message)}</div>`;
+  } finally {
+    doneLoading();
+  }
+});
 
 // ── Language selector ─────────────────────────────────────────────────────────
 

@@ -20,7 +20,7 @@ def get_client() -> OpenAI:
 
 
 def get_db(project: str = Query(default=None)) -> sqlite3.Connection:
-    slug = project or settings.active_project
+    slug = project or settings.get_active_project()
     if not slug:
         raise HTTPException(400, "No active project. Set ACTIVE_PROJECT in .env or pass ?project=slug")
     db_path = settings.project_db_path(slug)

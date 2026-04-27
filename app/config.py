@@ -27,10 +27,45 @@ class Settings(BaseSettings):
     def data_dir(self) -> Path:
         return Path("data")
 
+    @property
+    def _active_project_file(self) -> Path:
+        return self.data_dir / ".active_project"
+
+    def get_active_project(self) -> str:
+        """Return the active project slug.
+
+        Reads from data/.active_project (written by the switch endpoint) first,
+        falling back to the ACTIVE_PROJECT env-var so the CLI/startup default
+        still works when no override file exists.
+        """
+        try:
+            p = self._active_project_file
+            if p.exists():
+                slug = p.read_text(encoding="utf-8").strip()
+                if slug:
+                    return slug
+        except Exception:
+            pass
+        return self.active_project
+
+    def set_active_project(self, slug: str) -> None:
+        """Persist the active project override without touching .env."""
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._active_project_file.write_text(slug, encoding="utf-8")
+
     def project_db_path(self, slug: str) -> Path:
         path = self.data_dir / slug
         path.mkdir(parents=True, exist_ok=True)
         return path / "novel.db"
+
+    def list_projects(self) -> list[str]:
+        """Return all project slugs that have an initialised novel.db."""
+        if not self.data_dir.exists():
+            return []
+        return sorted(
+            d.name for d in self.data_dir.iterdir()
+            if d.is_dir() and (d / "novel.db").exists()
+        )
 
 
 settings = Settings()

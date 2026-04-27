@@ -16,6 +16,7 @@
       <button data-tab="write">Write</button>
       <button data-tab="state">State</button>
       <button data-tab="archive">Archive</button>
+      <button data-tab="projects">Projects</button>
     </nav>
   </header>
 
@@ -151,7 +152,7 @@
       <div class="card" id="issues-card">
         <div class="card-title">Continuity Issues</div>
         <table class="data-table" id="issues-table">
-          <thead><tr><th>ID</th><th>Severity</th><th>Description</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>Severity</th><th>Description</th><th style="min-width:180px"></th></tr></thead>
           <tbody id="issues-tbody"></tbody>
         </table>
       </div>
@@ -163,6 +164,44 @@
           <thead><tr><th>Day</th><th>Event</th></tr></thead>
           <tbody id="timeline-tbody"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ── PROJECTS ─────────────────────────────────────────────────── -->
+    <section id="tab-projects" class="tab-panel">
+      <h2 class="section-heading">Projects</h2>
+
+      <!-- Project list -->
+      <div class="card">
+        <div class="card-title">All Projects</div>
+        <table class="data-table" id="projects-table">
+          <thead><tr><th>Slug</th><th>Status</th><th style="min-width:200px"></th></tr></thead>
+          <tbody id="projects-tbody">
+            <tr><td colspan="3" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- New project form -->
+      <div class="card">
+        <div class="card-title">New Project</div>
+        <div class="form-row">
+          <label for="new-project-slug">Project slug (e.g. <code>my-thriller</code>)</label>
+          <input type="text" id="new-project-slug" placeholder="my-thriller" style="max-width:300px">
+        </div>
+        <div class="form-row">
+          <label for="new-project-seed">
+            Seed JSON
+            <button class="btn btn-secondary" id="btn-load-template"
+              style="padding:3px 10px;font-size:12px;margin-left:10px">Load template</button>
+          </label>
+          <textarea id="new-project-seed" rows="18" style="font-family:monospace;font-size:12px"
+            placeholder='{"project_slug": "...", "story_bible": {...}, "characters": [...], ...}'></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-create-project">Create Project</button>
+        </div>
+        <div id="create-project-result" style="margin-top:12px"></div>
       </div>
     </section>
 

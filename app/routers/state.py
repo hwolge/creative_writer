@@ -1,10 +1,12 @@
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app import database as db
-from app.deps import get_db
+from app.deps import get_client, get_db
+from app.orchestrator.reconciler import auto_resolve_issue
 
 router = APIRouter()
 
@@ -110,5 +112,20 @@ async def resolve_issue(issue_id: int, conn=Depends(get_db)) -> dict[str, Any]:
     try:
         db.resolve_continuity_issue(conn, issue_id)
         return {"resolved": issue_id}
+    finally:
+        conn.close()
+
+
+@router.post("/issues/{issue_id}/auto-resolve")
+async def auto_resolve(issue_id: int, conn=Depends(get_db)) -> dict[str, Any]:
+    """Use the fast model to determine the correct canon value and apply it."""
+    client = get_client()
+    try:
+        result = await asyncio.to_thread(auto_resolve_issue, client, conn, issue_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
     finally:
         conn.close()
