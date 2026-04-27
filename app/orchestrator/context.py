@@ -77,10 +77,9 @@ def _format_timeline(events: list[dict[str, Any]]) -> str:
 # ── Planner context ───────────────────────────────────────────────────────────
 
 def build_planner_messages(conn: sqlite3.Connection, arc_goal: str) -> list[dict[str, Any]]:
-    bible = _trim(
-        _format_story_bible(db.get_story_bible(conn)),
-        settings.budget_story_bible,
-    )
+    bible_data = db.get_story_bible(conn)
+    output_language = str(bible_data.get("output_language", "English")).strip()
+    bible = _trim(_format_story_bible(bible_data), settings.budget_story_bible)
     style = _trim(
         _format_style_guide(db.get_style_guide(conn)),
         settings.budget_style_guide,
@@ -101,9 +100,17 @@ def build_planner_messages(conn: sqlite3.Connection, arc_goal: str) -> list[dict
 
     context_block = "\n\n".join([bible, style, chars, threads, timeline, prev])
 
+    lang_instruction = (
+        f"Write all narrative content in {output_language} — this includes chapter titles, "
+        f"arc goals, scene briefs, emotional arcs, beat descriptions, reveals, and continuity risks. "
+        f"JSON field names (title, arc_goal, pov, scenes, etc.) must remain in English.\n\n"
+        if output_language.lower() != "english" else ""
+    )
+
     system = (
         "You are a master novelist and story architect working in collaboration with the author. "
         "Your task is to propose exactly 3 distinct options for the next chapter.\n\n"
+        f"{lang_instruction}"
         "Make the 3 options meaningfully different — vary the POV, pacing, which plot threads "
         "advance, and what is revealed. The author will choose one.\n\n"
         "You have access to tools to query story state. Use them as needed.\n\n"
@@ -215,6 +222,9 @@ def build_reconciler_messages(
     scene_text: str,
     proposed_delta: dict[str, Any],
 ) -> list[dict[str, Any]]:
+    bible_data = db.get_story_bible(conn)
+    output_language = str(bible_data.get("output_language", "English")).strip()
+
     # Provide current state for the characters mentioned in the delta
     char_names = [u.get("name", "") for u in proposed_delta.get("character_updates", [])]
     char_blocks = []
@@ -224,12 +234,19 @@ def build_reconciler_messages(
             char_blocks.append(_format_character_full(char))
     current_state = "\n\n".join(char_blocks) if char_blocks else "No specific character state loaded."
 
+    lang_instruction = (
+        f"Write the 'summary' field in {output_language}. "
+        f"All other JSON fields and values (validated_delta, low_confidence_items) remain in English.\n\n"
+        if output_language.lower() != "english" else ""
+    )
+
     system = (
         "You are a continuity editor reviewing a freshly written scene. Your tasks:\n"
         "1. Write a 2-4 sentence prose summary of the scene.\n"
         "2. Validate the proposed facts_delta against the actual scene content. "
         "Correct any inaccuracies. Remove changes not actually present in the scene.\n"
         "3. List any details you are uncertain about as low_confidence_items.\n\n"
+        f"{lang_instruction}"
         "Respond with a JSON object (no markdown fences):\n"
         '{"summary": "...", '
         '"validated_delta": {<same structure as input delta>}, '
@@ -252,15 +269,20 @@ def build_chapter_summarizer_messages(
     scene_summaries: list[str],
     chapter_title: str,
     arc_goal: str,
+    output_language: str = "English",
 ) -> list[dict[str, Any]]:
     scenes_text = "\n\n".join(
         f"Scene {i + 1}: {s}" for i, s in enumerate(scene_summaries)
+    )
+    lang_instruction = (
+        f"Write the summary in {output_language}.\n\n"
+        if output_language.lower() != "english" else ""
     )
     system = (
         "You are a story editor. Write a concise one-page chapter summary "
         "suitable for use as continuity reference in future chapters. "
         "Cover: what happened, what changed (characters, plot threads, relationships), "
-        "and what threads remain open. Prose format, no bullet points."
+        f"and what threads remain open. Prose format, no bullet points.\n\n{lang_instruction}"
     )
     user = (
         f"CHAPTER: {chapter_title}\nARC GOAL: {arc_goal}\n\n"

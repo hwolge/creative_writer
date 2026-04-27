@@ -103,12 +103,16 @@ async def approve(req: ApproveRequest, conn=Depends(get_db)) -> dict[str, Any]:
                         (chapter["chapter_id"],),
                     ).fetchall()
                 ]
+                output_language = str(
+                    db.get_story_bible(conn).get("output_language", "English")
+                ).strip()
                 chapter_summary = await asyncio.to_thread(
                     summarize_chapter,
                     client,
                     summaries,
                     chapter.get("title", f"Chapter {chapter['number']}"),
                     chapter.get("arc_goal", ""),
+                    output_language,
                 )
                 db.save_chapter_summary(conn, chapter["chapter_id"], chapter_summary)
 

@@ -46,9 +46,12 @@ def summarize_chapter(
     scene_summaries: list[str],
     chapter_title: str,
     arc_goal: str,
+    output_language: str = "English",
 ) -> str:
     """Generate a one-page chapter summary from individual scene summaries."""
-    messages = build_chapter_summarizer_messages(scene_summaries, chapter_title, arc_goal)
+    messages = build_chapter_summarizer_messages(
+        scene_summaries, chapter_title, arc_goal, output_language
+    )
     response = client.chat.completions.create(
         model=settings.fast_model,
         messages=messages,
