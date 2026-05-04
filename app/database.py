@@ -16,7 +16,21 @@ def get_conn(db_path: Path) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    _apply_migrations(conn)
     return conn
+
+
+def _apply_migrations(conn: sqlite3.Connection) -> None:
+    """Additive schema changes added after initial release.
+    Uses IF NOT EXISTS throughout — safe to run on every connection open."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS scene_embeddings (
+            scene_id   INTEGER PRIMARY KEY REFERENCES scenes(scene_id),
+            embedding  TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
 
 
 def init_schema(conn: sqlite3.Connection) -> None:
@@ -292,6 +306,16 @@ def get_continuity_issues(
     else:
         rows = conn.execute("SELECT * FROM continuity_issues ORDER BY severity DESC").fetchall()
     return [dict(r) for r in rows]
+
+
+def get_last_approved_scene_full(conn: sqlite3.Connection) -> dict[str, Any] | None:
+    """Return the most recently approved scene including full prose text."""
+    row = conn.execute("""
+        SELECT scene_id, chapter_id, sequence, brief, summary, full_text
+        FROM scenes WHERE status = 'approved'
+        ORDER BY scene_id DESC LIMIT 1
+    """).fetchone()
+    return dict(row) if row else None
 
 
 def get_recent_approved_scenes(conn: sqlite3.Connection, limit: int = 3) -> list[dict[str, Any]]:

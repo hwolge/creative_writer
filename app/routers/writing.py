@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app import database as db
 from app.deps import get_client, get_db
+from app.orchestrator.embeddings import store_scene_embedding
 from app.orchestrator.reconciler import reconcile_scene, summarize_chapter
 from app.orchestrator.writer import write_scene
 
@@ -93,6 +94,9 @@ async def approve(req: ApproveRequest, conn=Depends(get_db)) -> dict[str, Any]:
         # Persist reconciler's low_confidence_items so they appear in State → Issues
         for item in result.low_confidence_items:
             db.add_continuity_issue(conn, "low", item, scene["scene_id"])
+
+        # Generate and store a semantic embedding for future RAG retrieval
+        await asyncio.to_thread(store_scene_embedding, client, conn, scene["scene_id"])
 
         # Check if chapter is now complete → generate chapter summary
         next_scene = db.get_current_scene(conn)

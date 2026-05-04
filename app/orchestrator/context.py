@@ -142,6 +142,7 @@ def build_writer_messages(
     scene_brief: str,
     pov_character: str | None = None,
     chapter_context: str = "",
+    rag_scenes: list[dict] | None = None,
 ) -> list[dict[str, Any]]:
     bible_data = db.get_story_bible(conn)
     output_language = str(bible_data.get("output_language", "English")).strip()
@@ -159,21 +160,48 @@ def build_writer_messages(
                 _format_character_full(char), settings.budget_pov_char
             )
 
-    # Recent approved scenes for immediate continuity
-    recent = db.get_recent_approved_scenes(conn, limit=2)
-    recent_text = ""
-    if recent:
-        lines = ["RECENT SCENES:"]
-        for s in recent:
+    # ── Immediately preceding scene — verbatim full text ─────────────────────
+    # The handoff sentence, exact voice, and specific details must be preserved.
+    verbatim_block = ""
+    last = db.get_last_approved_scene_full(conn)
+    if last and last.get("full_text"):
+        trimmed = _trim(last["full_text"], settings.budget_verbatim_prev)
+        verbatim_block = (
+            f"IMMEDIATELY PRECEDING SCENE — Scene {last['scene_id']} "
+            f"(your prose must follow on directly from this ending):\n\n{trimmed}"
+        )
+
+    # ── Earlier scene summaries (N-2 and older) ───────────────────────────────
+    recent_all = db.get_recent_approved_scenes(conn, limit=4)
+    earlier = recent_all[1:] if len(recent_all) > 1 else []
+    earlier_text = ""
+    if earlier:
+        lines = ["EARLIER SCENE SUMMARIES:"]
+        for s in earlier:
             lines.append(f"  Scene {s['scene_id']}: {s.get('summary') or s['brief']}")
-        recent_text = _trim("\n".join(lines), settings.budget_prev_scene)
+        earlier_text = _trim("\n".join(lines), settings.budget_prev_scene)
+
+    # ── RAG: semantically similar past scenes ─────────────────────────────────
+    rag_block = ""
+    if rag_scenes:
+        lines = [
+            "RELEVANT PAST SCENES (retrieved by semantic similarity — "
+            "check these for established facts, objects, and details):"
+        ]
+        for s in rag_scenes:
+            lines.append(f"  Scene {s['scene_id']}: {s.get('summary') or s['brief']}")
+        rag_block = _trim("\n".join(lines), settings.budget_retrieved_excerpts)
 
     open_threads = _trim(
         _format_threads(db.get_plot_threads(conn, status="open")),
         settings.budget_plot_threads,
     )
 
-    context_parts = [p for p in [bible, style, pov_block, open_threads, recent_text] if p]
+    context_parts = [
+        p for p in [bible, style, pov_block, open_threads,
+                    verbatim_block, earlier_text, rag_block]
+        if p
+    ]
     context_block = "\n\n".join(context_parts)
 
     lang_instruction = (
@@ -187,8 +215,14 @@ def build_writer_messages(
         "Write fully realized prose for the scene described — not a summary, not an outline. "
         "Stay in close third-person POV unless the scene brief specifies otherwise.\n\n"
         f"{lang_instruction}"
-        "You have tools to query story state. Use them proactively to ensure continuity "
-        "(character facts, voice samples, past scene excerpts, timeline).\n\n"
+        "You have tools to query story state. Before drafting a single word:\n"
+        "  1. Call get_character_state() for every character who appears in this scene "
+        "— do not rely on memory for facts, voice, or physical details.\n"
+        "  2. Call search_scenes() with 2–3 keywords from the scene brief "
+        "(location names, object names, character pairings) to surface any past scene "
+        "that established relevant facts. Do this even if you think you remember.\n"
+        "  3. Call get_style_guide() to refresh voice and prose rules before writing.\n"
+        "Skipping these steps causes continuity errors that are hard to fix later.\n\n"
         "After your prose, output a facts_delta block enclosed in ```json ... ``` fences "
         "containing ONLY the state changes introduced in this scene:\n"
         "```json\n"
@@ -199,6 +233,8 @@ def build_writer_messages(
         '  "continuity_flags": [{"severity": "low|medium|high", "description": "...", "confidence": "high|low"}]\n'
         "}\n"
         "```\n"
+        "If a character learns, discovers, decides, or suspects anything significant, "
+        "capture it under character_updates. "
         "If a field has no updates, use an empty array. "
         'Mark items confidence "low" if you are uncertain they are accurate.'
     )

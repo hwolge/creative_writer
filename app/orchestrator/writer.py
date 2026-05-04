@@ -7,6 +7,7 @@ from openai import OpenAI
 from app.config import settings
 from app.models import FactsDelta
 from app.orchestrator.context import build_writer_messages
+from app.orchestrator.embeddings import retrieve_similar_scenes
 from app.orchestrator.tools import run_tool_loop
 
 _DELTA_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL)
@@ -29,7 +30,15 @@ def write_scene(
     """Generate prose + facts_delta for a scene.
     Returns (prose_text, facts_delta_dict).
     """
-    messages = build_writer_messages(conn, scene_brief, pov_character, chapter_context)
+    # Retrieve semantically similar past scenes for long-range consistency (RAG).
+    # Returns empty list gracefully when no embeddings exist yet (first scene).
+    rag_scenes = retrieve_similar_scenes(
+        client, conn, scene_brief, top_k=settings.rag_top_k
+    )
+
+    messages = build_writer_messages(
+        conn, scene_brief, pov_character, chapter_context, rag_scenes=rag_scenes
+    )
     content, _ = run_tool_loop(client, settings.primary_model, messages, conn, label="writer")
     return _parse_response(content)
 

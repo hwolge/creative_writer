@@ -20,8 +20,10 @@ class Settings(BaseSettings):
     budget_prev_chapter: int = 300
     budget_pov_char: int = 200
     budget_other_chars: int = 150
-    budget_prev_scene: int = 400
-    budget_retrieved_excerpts: int = 600
+    budget_prev_scene: int = 400        # earlier scene summaries (N-2 and older)
+    budget_verbatim_prev: int = 1500    # immediately preceding scene, full text
+    budget_retrieved_excerpts: int = 600  # RAG-retrieved scene summaries
+    rag_top_k: int = 3                  # how many semantically similar scenes to inject
 
     @property
     def data_dir(self) -> Path:
