@@ -195,6 +195,7 @@ async function loadCurrentScene() {
     if (!data.scene) {
       noScene.style.display = '';
       sceneArea.style.display = 'none';
+      document.getElementById('approval-result').style.display = 'none';
       return;
     }
 
@@ -213,7 +214,9 @@ async function loadCurrentScene() {
       chCtx.style.display = 'none';
     }
 
-    // If there's an existing draft, show it
+    // If there's an existing draft, show it; otherwise just update the brief
+    // without touching approval-result — let the user keep reading it after a
+    // tab-switch, and only clear it when they actively start writing.
     if (data.scene.status === 'draft' && data.scene.full_text) {
       document.getElementById('prose-editor').value = data.scene.full_text;
       S.draft = { prose: data.scene.full_text, facts_delta: data.scene.facts_delta, scene_id: data.scene.scene_id };
@@ -223,7 +226,8 @@ async function loadCurrentScene() {
     } else {
       document.getElementById('draft-area').style.display = 'none';
       document.getElementById('prose-editor').value = '';
-      document.getElementById('approval-result').style.display = 'none';
+      // Do NOT hide approval-result here — it may still be showing the previous
+      // scene's result. It gets cleared explicitly when a new write is started.
     }
   } catch (e) {
     console.warn('loadCurrentScene error:', e.message);

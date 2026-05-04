@@ -90,6 +90,10 @@ async def approve(req: ApproveRequest, conn=Depends(get_db)) -> dict[str, Any]:
             result.validated_delta.model_dump(),
         )
 
+        # Persist reconciler's low_confidence_items so they appear in State → Issues
+        for item in result.low_confidence_items:
+            db.add_continuity_issue(conn, "low", item, scene["scene_id"])
+
         # Check if chapter is now complete → generate chapter summary
         next_scene = db.get_current_scene(conn)
         chapter_summary = None

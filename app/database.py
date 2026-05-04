@@ -498,6 +498,19 @@ def get_continuity_issue(conn: sqlite3.Connection, issue_id: int) -> dict[str, A
     return dict(row) if row else None
 
 
+def add_continuity_issue(
+    conn: sqlite3.Connection,
+    severity: str,
+    description: str,
+    scene_id: int | None = None,
+) -> None:
+    conn.execute(
+        "INSERT INTO continuity_issues (severity, description, scene_id) VALUES (?, ?, ?)",
+        (severity, description, scene_id),
+    )
+    conn.commit()
+
+
 def resolve_continuity_issue(conn: sqlite3.Connection, issue_id: int) -> None:
     conn.execute(
         "UPDATE continuity_issues SET resolved=1 WHERE issue_id=?", (issue_id,)
