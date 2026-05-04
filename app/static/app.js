@@ -507,11 +507,19 @@ async function loadSceneList(chapterNum) {
   } catch (e) { console.warn(e); }
 }
 
+function proseToHtml(text) {
+  if (!text) return '<p>[No text yet]</p>';
+  return text.split(/\n\n+/)
+    .map(p => p.trim()).filter(Boolean)
+    .map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
 async function showSceneViewer(sceneId, brief) {
   try {
     const scene = await api('GET', `/archive/scenes/${sceneId}`);
     document.getElementById('scene-viewer-title').textContent = `Scene ${sceneId} — ${brief}`;
-    document.getElementById('scene-viewer-text').textContent = scene.full_text || '[No text yet]';
+    document.getElementById('scene-viewer-text').innerHTML = proseToHtml(scene.full_text);
     document.getElementById('scene-viewer').style.display = '';
     document.getElementById('scene-viewer').scrollIntoView({ behavior: 'smooth' });
   } catch (e) { alert(e.message); }

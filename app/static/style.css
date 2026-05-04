@@ -159,12 +159,12 @@ main {
 .prose-area {
   font-family: var(--prose-font);
   font-size: 16px;
-  line-height: 1.8;
+  line-height: 1.6;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 28px 32px;
+  padding: 20px 24px;
   min-height: 300px;
   width: 100%;
   resize: vertical;
@@ -399,13 +399,31 @@ textarea:focus, input[type="text"]:focus { border-color: var(--accent); }
 .prose-viewer {
   font-family: var(--prose-font);
   font-size: 16px;
-  line-height: 1.8;
-  white-space: pre-wrap;
-  padding: 24px 28px;
+  line-height: 1.6;
+  padding: 20px 24px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   margin-top: 12px;
+}
+
+/* Paragraphs rendered as <p> tags — no blank-line gaps, just typographic spacing */
+.prose-viewer p {
+  margin-bottom: 0.75em;
+  text-indent: 1.5em;
+}
+.prose-viewer p:first-child { text-indent: 0; }
+.prose-viewer p:last-child  { margin-bottom: 0; }
+
+/* Scene divider: * * * */
+.prose-viewer .scene-sep {
+  text-align: center;
+  color: var(--text-faint);
+  margin: 1.2em 0;
+  letter-spacing: 0.4em;
+  font-style: normal;
+  font-family: var(--ui-font);
+  font-size: 14px;
 }
 
 .chapter-row { cursor: pointer; }

@@ -205,7 +205,13 @@
 
     <!-- ── ARCHIVE ────────────────────────────────────────────────────── -->
     <section id="tab-archive" class="tab-panel">
-      <h2 class="section-heading">Archive</h2>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px">
+        <h2 class="section-heading" style="margin-bottom:0">Archive</h2>
+        <div style="display:flex;gap:8px">
+          <a id="export-docx" href="/archive/export?format=docx" class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export DOCX</a>
+          <a id="export-txt"  href="/archive/export?format=txt"  class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export TXT</a>
+        </div>
+      </div>
 
       <div class="search-row">
         <input type="text" id="search-input" placeholder="Search scenes…">
@@ -247,6 +253,6 @@
   <div id="loading-msg">Working…</div>
 </div>
 
-<script src="/static/app.js?v=4"></script>
+<script src="/static/app.js?v=5"></script>
 </body>
 </html>
