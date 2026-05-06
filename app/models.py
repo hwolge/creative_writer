@@ -134,8 +134,17 @@ class ContinuityFlag(BaseModel):
     confidence: str = "high"  # high | low
 
 
+class NewCharacter(BaseModel):
+    """A character introduced for the first time in this scene.
+    Facts are intentionally minimal — they accumulate with each recurrence."""
+    name: str
+    facts: dict[str, Any] = {}
+    voice_samples: list[str] = []
+
+
 class FactsDelta(BaseModel):
     character_updates: list[CharacterUpdate] = []
+    new_characters: list[NewCharacter] = []
     plot_updates: list[PlotUpdate] = []
     timeline_events: list[TimelineEvent] = []
     continuity_flags: list[ContinuityFlag] = []

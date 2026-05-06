@@ -228,11 +228,15 @@ def build_writer_messages(
         "```json\n"
         "{\n"
         '  "character_updates": [{"name": "...", "changes": {"field": "new_value"}}],\n'
+        '  "new_characters": [{"name": "...", "facts": {"role": "...", "appearance": "..."}, "voice_samples": ["short quote"]}],\n'
         '  "plot_updates": [{"thread_id": "...", "status": "...", "summary_update": "..."}],\n'
         '  "timeline_events": [{"story_day": 1, "event": "..."}],\n'
         '  "continuity_flags": [{"severity": "low|medium|high", "description": "...", "confidence": "high|low"}]\n'
         "}\n"
         "```\n"
+        "Use new_characters ONLY for characters appearing for the very first time — "
+        "keep facts minimal (role, appearance, 1-2 distinguishing traits). "
+        "They accumulate detail on each future recurrence via character_updates.\n"
         "If a character learns, discovers, decides, or suspects anything significant, "
         "capture it under character_updates. "
         "If a field has no updates, use an empty array. "
@@ -281,11 +285,20 @@ def build_reconciler_messages(
         "1. Write a 2-4 sentence prose summary of the scene.\n"
         "2. Validate the proposed facts_delta against the actual scene content. "
         "Correct any inaccuracies. Remove changes not actually present in the scene.\n"
+        "   Pay special attention to new_characters: only include a character here if "
+        "they genuinely appear for the first time and are not already in the story bible. "
+        "Verify that their stated facts (role, appearance) match the scene.\n"
         "3. List any details you are uncertain about as low_confidence_items.\n\n"
         f"{lang_instruction}"
         "Respond with a JSON object (no markdown fences):\n"
         '{"summary": "...", '
-        '"validated_delta": {<same structure as input delta>}, '
+        '"validated_delta": {'
+        '"character_updates": [...], '
+        '"new_characters": [{"name": "...", "facts": {...}, "voice_samples": [...]}], '
+        '"plot_updates": [...], '
+        '"timeline_events": [...], '
+        '"continuity_flags": [...]'
+        '}, '
         '"low_confidence_items": ["..."]}'
     )
 

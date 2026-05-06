@@ -257,16 +257,33 @@ def get_scene_full_text(conn: sqlite3.Connection, scene_id: int) -> str | None:
     return row["full_text"] if row else None
 
 
+def _sanitize_fts(query: str) -> str:
+    """Strip FTS5 operator characters so raw model output never causes a syntax error.
+    Keeps only word characters and spaces; each resulting token is quoted so it is
+    treated as a literal phrase rather than an operator."""
+    import re
+    tokens = re.findall(r'\w+', query, flags=re.UNICODE)
+    if not tokens:
+        return '""'  # returns zero rows gracefully
+    # Quote each token → FTS5 treats them as literal terms (implicit AND)
+    return ' '.join(f'"{t}"' for t in tokens)
+
+
 def search_scenes(conn: sqlite3.Connection, query: str) -> list[dict[str, Any]]:
-    rows = conn.execute("""
-        SELECT s.scene_id, s.chapter_id, s.sequence, s.brief, s.summary
-        FROM scenes_fts f
-        JOIN scenes s ON s.scene_id = f.scene_id
-        WHERE scenes_fts MATCH ?
-        ORDER BY rank
-        LIMIT 5
-    """, (query,)).fetchall()
-    return [dict(r) for r in rows]
+    safe_query = _sanitize_fts(query)
+    try:
+        rows = conn.execute("""
+            SELECT s.scene_id, s.chapter_id, s.sequence, s.brief, s.summary
+            FROM scenes_fts f
+            JOIN scenes s ON s.scene_id = f.scene_id
+            WHERE scenes_fts MATCH ?
+            ORDER BY rank
+            LIMIT 5
+        """, (safe_query,)).fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
+        # If FTS still fails for any reason, return empty rather than crashing the writer
+        return []
 
 
 def get_timeline(
@@ -414,6 +431,11 @@ def approve_scene(
 
 
 def _apply_delta(conn: sqlite3.Connection, scene_id: int, delta: dict[str, Any]) -> None:
+    # Create any brand-new characters first so subsequent character_updates can find them
+    for nc in delta.get("new_characters", []):
+        if nc.get("name"):
+            create_character(conn, nc["name"], nc.get("facts", {}), nc.get("voice_samples", []))
+
     for cu in delta.get("character_updates", []):
         row = conn.execute("SELECT facts FROM characters WHERE name=?", (cu["name"],)).fetchone()
         if row:
@@ -468,6 +490,26 @@ def _maybe_complete_chapter(conn: sqlite3.Connection, scene_id: int) -> None:
             "UPDATE chapters SET status='complete' WHERE chapter_id=?", (chapter_id,)
         )
         conn.commit()
+
+
+def create_character(
+    conn: sqlite3.Connection,
+    name: str,
+    facts: dict[str, Any],
+    voice_samples: list[str] | None = None,
+) -> bool:
+    """Insert a new character. Returns False (no-op) if the name already exists."""
+    existing = conn.execute(
+        "SELECT name FROM characters WHERE name=?", (name,)
+    ).fetchone()
+    if existing:
+        return False
+    conn.execute(
+        "INSERT INTO characters (name, facts, voice_samples, updated_at) VALUES (?, ?, ?, ?)",
+        (name, json.dumps(facts), json.dumps(voice_samples or []), _now()),
+    )
+    conn.commit()
+    return True
 
 
 def update_character_manual(

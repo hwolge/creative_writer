@@ -15,6 +15,12 @@ class CharacterPatch(BaseModel):
     changes: dict[str, Any]
 
 
+class CharacterCreate(BaseModel):
+    name: str
+    facts: dict[str, Any] = {}
+    voice_samples: list[str] = []
+
+
 @router.get("/bible")
 async def get_bible(conn=Depends(get_db)) -> dict[str, Any]:
     try:
@@ -35,6 +41,18 @@ async def patch_bible(updates: dict[str, Any], conn=Depends(get_db)) -> dict[str
 class ThreadPatch(BaseModel):
     status: str | None = None
     summary: str | None = None
+
+
+@router.post("/characters")
+async def create_character(req: CharacterCreate, conn=Depends(get_db)) -> dict[str, Any]:
+    try:
+        created = db.create_character(conn, req.name, req.facts, req.voice_samples)
+        if not created:
+            raise HTTPException(409, f"Character '{req.name}' already exists")
+        char = db.get_character(conn, req.name)
+        return char
+    finally:
+        conn.close()
 
 
 @router.get("/characters")

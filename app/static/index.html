@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Novel Writer</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 <div id="app">
@@ -133,9 +133,46 @@
 
       <!-- Characters -->
       <div class="card">
-        <div class="card-title">Characters</div>
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          Characters
+          <button class="btn btn-secondary" style="font-size:12px;padding:3px 10px"
+                  onclick="toggleAddCharForm()">+ Add Character</button>
+        </div>
         <div class="char-grid" id="chars-grid">
           <div class="empty-state">Loading...</div>
+        </div>
+        <!-- Add character form (hidden by default) -->
+        <div id="add-char-form" style="display:none;border-top:1px solid var(--border);margin-top:14px;padding-top:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:12px;color:var(--text-muted)">Name *</label>
+              <input type="text" id="new-char-name" placeholder="e.g. Detective Håkansson"
+                     style="width:100%;box-sizing:border-box;margin-top:4px">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text-muted)">Role</label>
+              <input type="text" id="new-char-role" placeholder="e.g. antagonist"
+                     style="width:100%;box-sizing:border-box;margin-top:4px">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text-muted)">Appearance / initial notes
+              <span style="font-weight:400">(optional)</span></label>
+            <textarea id="new-char-appearance" rows="2"
+                      placeholder="Tall, grey coat, observant eyes..."
+                      style="width:100%;box-sizing:border-box;margin-top:4px;font-size:13px"></textarea>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text-muted)">Voice sample
+              <span style="font-weight:400">(optional — one short quote)</span></label>
+            <input type="text" id="new-char-voice" placeholder='"Jag vet vad du gömmer."'
+                   style="width:100%;box-sizing:border-box;margin-top:4px">
+          </div>
+          <div id="add-char-error" style="color:#e74c3c;font-size:12px;margin-bottom:8px;display:none"></div>
+          <div class="btn-row" style="margin-top:0">
+            <button class="btn btn-primary" id="btn-add-char">Add Character</button>
+            <button class="btn btn-secondary" onclick="toggleAddCharForm()">Cancel</button>
+          </div>
         </div>
       </div>
 
@@ -208,8 +245,8 @@
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px">
         <h2 class="section-heading" style="margin-bottom:0">Archive</h2>
         <div style="display:flex;gap:8px">
-          <a id="export-docx" href="/archive/export?format=docx" class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export DOCX</a>
-          <a id="export-txt"  href="/archive/export?format=txt"  class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export TXT</a>
+          <a id="export-docx" href="archive/export?format=docx" class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export DOCX</a>
+          <a id="export-txt"  href="archive/export?format=txt"  class="btn btn-secondary" style="font-size:13px;text-decoration:none" download>⬇ Export TXT</a>
         </div>
       </div>
 
@@ -253,6 +290,6 @@
   <div id="loading-msg">Working…</div>
 </div>
 
-<script src="/static/app.js?v=5"></script>
+<script src="static/app.js?v=8"></script>
 </body>
 </html>

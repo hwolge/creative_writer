@@ -1,5 +1,13 @@
 'use strict';
 
+// ── Reverse-proxy prefix ──────────────────────────────────────────────────────
+// The page is always served at the root of the app, so window.location.pathname
+// IS the proxy prefix.  Examples:
+//   https://wolge.se/writer/  → ROOT = "/writer"
+//   http://localhost:8000/    → ROOT = ""
+// All fetch() calls go through api() which prepends ROOT automatically.
+const ROOT = window.location.pathname.replace(/\/$/, '');
+
 // ── State ─────────────────────────────────────────────────────────────────────
 
 const S = {
@@ -17,7 +25,7 @@ const S = {
 async function api(method, path, body = null) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body !== null) opts.body = JSON.stringify(body);
-  const res = await fetch(path, opts);
+  const res = await fetch(ROOT + path, opts);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || res.statusText);
@@ -344,6 +352,58 @@ async function loadCharacters() {
     });
   } catch (e) { console.warn(e); }
 }
+
+// ── Add character manually ────────────────────────────────────────────────────
+
+window.toggleAddCharForm = () => {
+  const form = document.getElementById('add-char-form');
+  const visible = form.style.display !== 'none';
+  form.style.display = visible ? 'none' : 'block';
+  if (!visible) {
+    document.getElementById('new-char-name').focus();
+    document.getElementById('add-char-error').style.display = 'none';
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-add-char')?.addEventListener('click', async () => {
+    const name = document.getElementById('new-char-name').value.trim();
+    const role = document.getElementById('new-char-role').value.trim();
+    const appearance = document.getElementById('new-char-appearance').value.trim();
+    const voice = document.getElementById('new-char-voice').value.trim();
+    const errEl = document.getElementById('add-char-error');
+
+    if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+
+    const facts = {};
+    if (role) facts.role = role;
+    if (appearance) facts.appearance = appearance;
+
+    const body = { name, facts };
+    if (voice) body.voice_samples = [voice];
+
+    const btn = document.getElementById('btn-add-char');
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+    errEl.style.display = 'none';
+
+    try {
+      await api('POST', '/state/characters', body);
+      // Clear form
+      ['new-char-name','new-char-role','new-char-appearance','new-char-voice'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('add-char-form').style.display = 'none';
+      await loadCharacters();
+    } catch (e) {
+      errEl.textContent = e.message || 'Failed to add character.';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Add Character';
+    }
+  });
+});
 
 async function toggleCharDetail(card, name) {
   // Remove any open drawers

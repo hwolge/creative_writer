@@ -9,10 +9,10 @@ from app.routers import archive, planning, project, state, writing
 app = FastAPI(title="Novel Writer", version="1.0.0")
 
 app.include_router(project.router, prefix="/project", tags=["project"])
-app.include_router(planning.router, prefix="/plan", tags=["planning"])
-app.include_router(writing.router, prefix="/scene", tags=["writing"])
-app.include_router(state.router, prefix="/state", tags=["state"])
-app.include_router(archive.router, prefix="/archive", tags=["archive"])
+app.include_router(planning.router, prefix="/plan",    tags=["planning"])
+app.include_router(writing.router,  prefix="/scene",   tags=["writing"])
+app.include_router(state.router,    prefix="/state",   tags=["state"])
+app.include_router(archive.router,  prefix="/archive", tags=["archive"])
 
 _static = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(_static)), name="static")

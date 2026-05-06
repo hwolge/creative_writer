@@ -1,15 +1,16 @@
 {
-  "project_slug": "den-forfalskarade-kartan",
+  "project_slug": "det-forfalskade-sjökortet",
 
   "story_bible": {
     "output_language": "Swedish",
-    "title": "Den förfalskade kartan",
+    "title": "Det förfalskade sjökortet",
     "genre": "historisk thriller",
-    "setting": "Oslos hamndistrikt, november 1923. Tät dimma, gaslampor längs kajerna, mörka pakhus.",
+    "setting": "Oslos hamndistrikt, november 1923. Tät dimma, gaslampor längs kajerna, mörka packhus.",
     "themes": ["förräderi", "hemligheter som tystar", "försoning"],
     "world_rules": [
       "Ingen allvetande berättarröst — nära tredjeperson genomgående.",
       "Våld är konsekvens, aldrig spektakel.",
+      "Erotik är underförstått, aldrig explicit. Det som inte sägs är lika viktigt som det som sägs.",
       "Varje kapitel måste föra minst en berättartråd till ett nytt läge."
     ],
     "taboo_items": [
@@ -24,40 +25,40 @@
       "name": "Elin Voss",
       "facts": {
         "age": 34,
-        "appearance": "Lång, auburn hår uppsatt med nålar. Ett ärr löper längs vänster käklinje efter en olycka i barndomen.",
-        "role": "protagonist — hamninspektor med ett förflutet inom marinunderrättelsetjänsten",
+        "appearance": "Lång, kastanjefärgat hår uppsatt med nålar. Ett ärr löper längs vänster käklinje efter en olycka i barndomen.",
+        "role": "protagonist — hamninspektör med ett förflutet inom marinunderrättelsetjänsten",
         "motivation": "Ta reda på vem som dödade hennes tidigare partner Knut innan utredningen läggs ned.",
         "secrets": ["Hon förfalskade inspektionsrapporten som friande Halversen-lasten för sex månader sedan."],
         "relationships": {
-          "Jonas Lund": "orolig allians — hon litar på honom mindre än hon låtsas",
+          "Jonas Lund": "bräcklig allians — hon litar på honom mindre än hon låtsas",
           "Direktör Marte Brekke": "formell överordnad; Elin misstänker att hon är inblandad"
         },
-        "physical_state": "trött men funktionsduglig",
+        "physical_state": "trött men fungerande",
         "knows_secret": []
       },
       "voice_samples": [
         "Hon svarade inte genast. Lät tystnaden göra jobbet.",
-        "Elin hade lärt sig för länge sedan att sanningen inte kommer av sig själv — man måste gå in och hämta den."
+        "Elin visste sedan gammalt att sanningen inte kommer av sig själv — man måste gå in och hämta den."
       ]
     },
     {
       "name": "Jonas Lund",
       "facts": {
         "age": 41,
-        "appearance": "Kraftig byggnad, sandgult hår med grå tinningar. Bär alltid samma bruna överrock.",
+        "appearance": "Kraftig kroppsbyggnad, sandfärgat hår med grå tinningar. Bär alltid samma bruna överrock.",
         "role": "biroll — smugglare som motvilligt blivit informatör",
         "motivation": "Hålla sig vid liv och hålla dottern utanför den röra han skapat.",
-        "secrets": ["Han vet att kartan är förfalskad. Han beställde den."],
+        "secrets": ["Han vet att sjökortet är förfalskat. Han beställde det."],
         "relationships": {
           "Elin Voss": "nervös respekt — hon är den enda som faktiskt kan stoppa Brekke",
           "Direktör Marte Brekke": "rädsla; hon äger honom"
         },
         "physical_state": "utmattad, blåmärke på vänster hand efter ett slagsmål",
-        "knows_secret": ["kartan är förfalskad"]
+        "knows_secret": ["sjökortet är förfalskat"]
       },
       "voice_samples": [
         "Jonas lade ut händerna på bordet som om han kapitulerade inför tyngdlagen.",
-        "— Det finns saker man inte kommer tillbaka ifrån, sa han. Det här är en av dem."
+        "— Det finns saker man inte kan göra ogjorda, sa han. Det här är en av dem."
       ]
     }
   ],
@@ -65,9 +66,9 @@
   "plot_threads": [
     {
       "thread_id": "forged-map",
-      "title": "Den förfalskade sjökartan",
+      "title": "Det förfalskade sjökortet",
       "status": "open",
-      "summary": "En sjökarta som används för att smuggla gods förbi tullen har förfalskats. Elin har originalet; någon vet om det."
+      "summary": "Ett sjökort som används för att smuggla gods förbi tullen har förfalskats. Elin har originalet; någon vet om det."
     },
     {
       "thread_id": "knut-death",
@@ -86,7 +87,7 @@
   "style_guide": [
     {
       "category": "voice",
-      "content": "Sparsamt och precist språk. Korta meningar i spänningsfyllda scener. Längre, iakttagande meningar i lugnare passager. Inga adverbklungor."
+      "content": "Håll skandinavisk krim noir-stil. Sparsamt och precist språk. Korta meningar i spänningsfyllda scener. Längre, iakttagande meningar i lugnare passager. Inga adverbklungor. Undvik substantiv i obestämd form utan obestämd artikel. Undvik direktöversättningar av engelska idiomatiska uttryck."
     },
     {
       "category": "rule",
@@ -97,19 +98,19 @@
       "content": "Vatten och dimma återkommer. Hamnen är aldrig bara bakgrund — den speglar karaktärernas tillstånd."
     },
     {
-      "category": "sample",
-      "content": "Lagret luktade salt och gammalt rep. Elin höll handen nära fickan och rörde ingenting."
+      "category": "grammar-and-style",
+      "content": "skandinavisk krim noir-stil — kortare meningar, högt tempo"
     }
   ],
 
   "arc_goals": [
     {
       "chapter": 1,
-      "goal": "Etablera Elins värld och det utlösande problemet: den förfalskade kartan dyker upp, och hon inser att Knut kände till den innan han dog."
+      "goal": "Etablera Elins värld och det utlösande problemet: det förfalskade sjökortet dyker upp, och hon inser att Knut kände till det innan han dog."
     },
     {
       "chapter": 2,
-      "goal": "Elin hittar Jonas, hennes enda ledtråd. Deras första möte etablerar ömsesidig misstro men gemensam nödvändighet."
+      "goal": "Elin hittar Jonas, hennes enda ledtråd. Deras första möte etablerar ömsesidig misstro men gemensam nödvändighet. En omedelbar erotisk laddning uppstår mellan dem."
     }
   ]
 }
